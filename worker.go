@@ -93,6 +93,7 @@ func (w *workerWrapper) run(poolType PoolType) {
 					}
 				} else {
 					result = logic.Process(input)
+					result.Index = input.Index
 				}
 				select {
 				case retChan <- result:

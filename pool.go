@@ -22,18 +22,20 @@ var (
 )
 
 type Input struct {
-	Name string
-	Data interface{}
+	Name  string
+	Data  interface{}
+	Index int
 }
 
 type Output struct {
-	Err  error
-	Data interface{}
+	Err   error
+	Data  interface{}
+	Index int
 }
 
 type Worker interface {
 	// Process will synchronously perform a job and return the result.
-	GetLogic(name string) (Logic,error)
+	GetLogic(name string) (Logic, error)
 
 	// BlockUntilReady is called before each job is processed and must block the
 	// calling goroutine until the Worker is ready to process the next job.
@@ -98,6 +100,37 @@ func (p *Pool) Process(i Input) Output {
 
 	atomic.AddInt64(&p.queuedJobs, -1)
 	return o
+}
+
+func (p *Pool) ProcessBatch(inputs []Input) []Output {
+	batchSize := len(inputs)
+	outputs := make([]Output, batchSize)
+
+	atomic.AddInt64(&p.queuedJobs, int64(batchSize))
+
+	outChans := make([]<-chan Output, batchSize)
+	for i, input := range inputs {
+		request, open := <-p.reqChan
+		if !open {
+			panic(ErrPoolNotRunning)
+		}
+		input.Index = i
+		request.jobChan <- input
+		outChans[i] = request.retChan
+	}
+
+	for _, outchan := range outChans {
+		output, open := <-outchan
+		if !open {
+			panic(ErrWorkerClosed)
+		}
+		outputs[output.Index] = output
+
+	}
+
+	atomic.AddInt64(&p.queuedJobs, -int64(batchSize))
+
+	return outputs
 }
 
 // ProcessTimed will use the Pool to process a payload and synchronously return

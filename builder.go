@@ -30,7 +30,7 @@ func (b *WorkerBuilder) Add(l Logic) error {
 	return nil
 }
 
-func (b *WorkerBuilder) GetBuilder() (func() Worker) {
+func (b *WorkerBuilder) GetBuilder() func() Worker {
 	b.RLock()
 	defer b.RUnlock()
 

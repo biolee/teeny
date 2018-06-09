@@ -14,7 +14,7 @@ type ClosureLogic struct {
 	sync.Mutex
 
 	num int
-	f   func(interface{}) (interface{})
+	f   func(interface{}) interface{}
 }
 
 func (c *ClosureLogic) Name() string {
