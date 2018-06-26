@@ -145,6 +145,7 @@ func (p *Pool) ProcessTimed(
 	defer atomic.AddInt64(&p.queuedJobs, -1)
 
 	tout := time.NewTimer(timeout)
+	defer tout.Stop()
 
 	var request workRequest
 	var open bool
@@ -174,7 +175,6 @@ func (p *Pool) ProcessTimed(
 	select {
 	case o, open = <-request.retChan:
 		if !open {
-
 			return Output{
 				Err: ErrWorkerClosed,
 			}
@@ -182,14 +182,11 @@ func (p *Pool) ProcessTimed(
 	case <-tout.C:
 		request.interruptFunc()
 		return Output{
-			Err: ErrWorkerClosed,
+			Err: ErrJobTimedOut,
 		}
 	}
 
-	tout.Stop()
-	return Output{
-		Data: o,
-	}
+	return o
 }
 
 // QueueLength returns the current count of pending queued jobs.

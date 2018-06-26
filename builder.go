@@ -2,7 +2,6 @@ package teeny
 
 import (
 	"fmt"
-	"log"
 	"sync"
 )
 
@@ -40,8 +39,8 @@ func (b *WorkerBuilder) GetBuilder() func() Worker {
 }
 
 func (b *WorkerBuilder) BlockUntilReady() {
-	for name, f := range b.LogicMap {
-		log.Printf("Waiting for Logic: %v", name)
+	for _, f := range b.LogicMap {
+		//log.Printf("Waiting for Logic: %v", name)
 		if f.GetBlockUntilReadyFunc() != nil {
 			f.GetBlockUntilReadyFunc()()
 		}
@@ -49,8 +48,8 @@ func (b *WorkerBuilder) BlockUntilReady() {
 }
 
 func (b *WorkerBuilder) Interrupt() {
-	for name, f := range b.LogicMap {
-		log.Printf("Interruptint Logic: %v", name)
+	for _, f := range b.LogicMap {
+		//log.Printf("Interruptint Logic: %v", name)
 		if f.GetInterruptFunc() != nil {
 			f.GetInterruptFunc()()
 		}
@@ -58,8 +57,8 @@ func (b *WorkerBuilder) Interrupt() {
 
 }
 func (b *WorkerBuilder) Terminate() {
-	for name, f := range b.LogicMap {
-		log.Printf("Terminating Logic: %v", name)
+	for _, f := range b.LogicMap {
+		//log.Printf("Terminating Logic: %v", name)
 		if f.GetTerminateFunc() != nil {
 			f.GetTerminateFunc()()
 		}
